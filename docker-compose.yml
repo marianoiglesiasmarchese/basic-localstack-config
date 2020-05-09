@@ -1,19 +1,28 @@
 version: '3'
+
 services:
   localstack:
-    container_name: local-aws-services
+    container_name: "${LOCALSTACK_DOCKER_NAME-local-aws-services}"
     build:
       context: .
       dockerfile: ./Dockerfile.localstack
     ports:
-      - "4567-4584:4567-4584"
-      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+      - "4566-4599:4566-4599"
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8085}"
     environment:
-      - SERVICES=s3,sqs,es
+      - SERVICES=${SERVICES- }
+      - DEBUG=${DEBUG- }
+      - DATA_DIR=${DATA_DIR- }
+      - PORT_WEB_UI=${PORT_WEB_UI- }
+      # - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      # - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOST_TMP_FOLDER=${TMPDIR:-./data/localstack}
+      - HOSTNAME=${MY_DOCKER_IP:-127.0.0.1}
+      - HOSTNAME_EXTERNAL=${MY_DOCKER_IP:-127.0.0.1}
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=key
       - AWS_SECRET_ACCESS_KEY=secret
-      - "HOSTNAME=${MY_DOCKER_IP:-127.0.0.1}"
-      - "HOSTNAME_EXTERNAL=${MY_DOCKER_IP:-127.0.0.1}"
     volumes:
-      - ./data/localstack:/tmp/localstack
+      - "${TMPDIR:-./data/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
